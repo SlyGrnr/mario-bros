@@ -11,11 +11,7 @@ const config = {
       debug: false
     }
   },
-  scene: {
-    preload,
-    create,
-    update
-  }
+  scene: { preload, create, update }
 };
 
 const game = new Phaser.Game(config);
@@ -25,10 +21,12 @@ let cursors;
 let platforms;
 
 function preload() {
-  // Cargamos imágenes desde internet (sin necesidad de subirlas)
-  this.load.image('sky', 'https://i.imgur.com/hLvbH7k.png');
-  this.load.image('ground', 'https://i.imgur.com/ATd5aRF.png');
-  this.load.spritesheet('mario', 'https://i.imgur.com/1XqjI2H.png', {
+  // Fondo y suelo estables (GitHub raw links)
+  this.load.image('sky', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/skies/sky4.png');
+  this.load.image('ground', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/platforms/platform.png');
+
+  // Sprite tipo Mario (public domain)
+  this.load.spritesheet('mario', 'https://raw.githubusercontent.com/jlooper/platformer-game-assets/main/player.png', {
     frameWidth: 32,
     frameHeight: 32
   });
@@ -36,7 +34,7 @@ function preload() {
 
 function create() {
   // Fondo
-  this.add.image(400, 225, 'sky').setScale(2);
+  this.add.image(400, 225, 'sky').setScale(1.5);
 
   // Plataformas
   platforms = this.physics.add.staticGroup();
@@ -45,7 +43,7 @@ function create() {
   platforms.create(50, 250, 'ground');
   platforms.create(750, 180, 'ground');
 
-  // Mario
+  // Jugador
   player = this.physics.add.sprite(100, 350, 'mario');
   player.setBounce(0.1);
   player.setCollideWorldBounds(true);
@@ -53,20 +51,20 @@ function create() {
   // Animaciones
   this.anims.create({
     key: 'left',
-    frames: this.anims.generateFrameNumbers('mario', { start: 0, end: 2 }),
+    frames: this.anims.generateFrameNumbers('mario', { start: 0, end: 3 }),
     frameRate: 10,
     repeat: -1
   });
 
   this.anims.create({
     key: 'turn',
-    frames: [{ key: 'mario', frame: 1 }],
+    frames: [{ key: 'mario', frame: 4 }],
     frameRate: 20
   });
 
   this.anims.create({
     key: 'right',
-    frames: this.anims.generateFrameNumbers('mario', { start: 3, end: 5 }),
+    frames: this.anims.generateFrameNumbers('mario', { start: 5, end: 8 }),
     frameRate: 10,
     repeat: -1
   });
@@ -91,6 +89,6 @@ function update() {
   }
 
   if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(-380);
+    player.setVelocityY(-400);
   }
 }
