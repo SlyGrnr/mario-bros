@@ -1,4 +1,4 @@
-// === Mini Mario Bros - Etapa 1 Corregida ===
+// === Mini Mario Bros - Etapa 1 Corregida y optimizada ===
 
 const config = {
   type: Phaser.AUTO,
@@ -15,16 +15,15 @@ const config = {
   scene: { preload, create, update }
 };
 
-let player, cursors, platforms, camera, bg1, bg2;
+let player, cursors, platforms, camera;
+let bgSky1, bgSky2, bgGround1, bgGround2;
 let scrollSpeed = 2;
+let platformWidth = 200;
 
 const game = new Phaser.Game(config);
 
 function preload() {
-  // No se cargan imágenes externas: las generamos aquí
-}
-
-function create() {
+  // Generar gráficos en textura
   const g = this.add.graphics();
 
   // Fondo cielo
@@ -41,8 +40,8 @@ function create() {
 
   // Plataforma marrón
   g.fillStyle(0x8b5a2b, 1);
-  g.fillRect(0, 0, 200, 32);
-  g.generateTexture('ground', 200, 32);
+  g.fillRect(0, 0, platformWidth, 32);
+  g.generateTexture('ground', platformWidth, 32);
   g.clear();
 
   // Jugador rojo
@@ -53,23 +52,27 @@ function create() {
   g.fillRect(18, 8, 4, 4);
   g.generateTexture('player', 28, 36);
   g.clear();
+}
 
-  // Fondo en pantalla
-  bg1 = this.add.image(0, 0, 'sky').setOrigin(0);
-  bg2 = this.add.image(0, 400, 'ground-deco').setOrigin(0);
+function create() {
+  // Fondos infinitos
+  bgSky1 = this.add.image(0, 0, 'sky').setOrigin(0);
+  bgSky2 = this.add.image(800, 0, 'sky').setOrigin(0);
+  bgGround1 = this.add.image(0, 400, 'ground-deco').setOrigin(0);
+  bgGround2 = this.add.image(800, 400, 'ground-deco').setOrigin(0);
 
   // Crear plataformas
   platforms = this.physics.add.staticGroup();
   for (let i = 0; i < 20; i++) {
-    const x = i * 200;
-    const y = 430;
-    const ground = platforms.create(x, y, 'ground').setOrigin(0);
+    let x = i * platformWidth;
+    let y = 430;
+    let ground = platforms.create(x, y, 'ground').setOrigin(0);
     ground.refreshBody();
   }
 
   // Crear jugador
   player = this.physics.add.sprite(100, 350, 'player');
-  player.setCollideWorldBounds(false);
+  player.setCollideWorldBounds(true);
   player.setBounce(0.1);
 
   this.physics.add.collider(player, platforms);
@@ -82,7 +85,7 @@ function create() {
 }
 
 function update() {
-  if (!player.body) return; // seguridad
+  if (!player.body) return;
 
   // Movimiento automático
   player.setVelocityX(160);
@@ -92,18 +95,22 @@ function update() {
     player.setVelocityY(-450);
   }
 
-  // Desplazar fondo
-  bg1.x -= scrollSpeed * 0.5;
-  bg2.x -= scrollSpeed;
-  if (bg1.x <= -800) bg1.x = 0;
-  if (bg2.x <= -800) bg2.x = 0;
+  // Fondo infinito
+  [bgSky1, bgSky2].forEach(bg => {
+    bg.x -= scrollSpeed * 0.5;
+    if (bg.x <= -800) bg.x += 1600;
+  });
+  [bgGround1, bgGround2].forEach(bg => {
+    bg.x -= scrollSpeed;
+    if (bg.x <= -800) bg.x += 1600;
+  });
 
   // Reciclado de plataformas
   platforms.children.iterate((p) => {
     if (!p.body) return;
     p.x -= scrollSpeed;
-    if (p.x + p.width < camera.scrollX - 200) {
-      p.x += 4000; // reaparece adelante
+    if (p.x + platformWidth < camera.scrollX - 200) {
+      p.x += platformWidth * 20; // 20 plataformas adelante
       p.refreshBody();
     }
   });
@@ -111,11 +118,5 @@ function update() {
   // Reinicio si cae
   if (player.y > 480) {
     this.scene.restart();
-  }
-}
-
-  // Verificar si el jugador cayó (muere)
-  if (player.y > 500) {
-    this.scene.restart(); // reinicia juego
   }
 }
