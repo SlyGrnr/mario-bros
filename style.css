@@ -1,1 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
+body {
+  background: linear-gradient(to bottom, #5ec8ff, #bde6ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  height: 100vh;
+}
+
+h1 {
+  margin: 10px;
+}
+
+#game {
+  border: 3px solid #222;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
