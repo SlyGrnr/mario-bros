@@ -12,7 +12,7 @@ const config = {
 };
 
 const PLAYER_SPEED = 160;
-const JUMP_VELOCITY = -450;
+const JUMP_VELOCITY = -750;
 const PLATFORM_WIDTH = 200;
 const MAX_PARTICLES = 5;
 
