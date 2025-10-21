@@ -5,21 +5,30 @@
 }
 
 body {
-  background: linear-gradient(to bottom, #5ec8ff, #bde6ff);
+  background: #000; /* Fondo negro para que no interfiera */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  min-height: 100vh;
   font-family: 'Poppins', sans-serif;
-  color: #333;
-  height: 100vh;
+  color: #fff;
+  padding: 20px 0;
 }
 
 h1 {
-  margin: 10px;
+  margin: 10px 0 20px;
+  font-size: 28px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 #game {
-  border: 3px solid #222;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  width: 800px;
+  height: 450px;
+  border: 4px solid #fff;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3),
+              0 0 40px rgba(100, 200, 255, 0.2);
+  overflow: hidden;
+  background: #000; /* Asegura fondo negro */
 }
