@@ -115,8 +115,3 @@ function update() {
   }
   scoreText.setText('Puntos: ' + score);
 }
-
-  if (cursors.up.isDown && player.body.touching.down) {
-    player.setVelocityY(-400);
-  }
-}
