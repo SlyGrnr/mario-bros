@@ -194,11 +194,15 @@ function spawnEnemies(scene) {
 }
 
 function moveEnemies() {
-    platforms.children.iterate(p => {
-        if (!p?.body) return;
-        if (p.x + PLATFORM_WIDTH < camera.scrollX - 200) {
-            p.x += PLATFORM_WIDTH * 20;
-            p.refreshBody();
+    enemies.children.iterate(e => {
+        if (!e?.body) return;
+        if (e.body.blocked.right || e.body.blocked.left) {
+            e.setVelocityX(-e.body.velocity.x);
+        }
+        if (e.x < camera.scrollX - 50) {
+            e.x += PLATFORM_WIDTH * 20;
+            e.y = 402;
+            e.setVelocityX(Phaser.Math.Between(50, 100) * (Math.random() > 0.5 ? 1 : -1));
         }
     });
 }
