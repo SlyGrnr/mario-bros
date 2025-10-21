@@ -3,31 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎮  - slygrnr</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background: #000;
-        color: #fff;
-        text-align: center;
-        font-family: "Poppins", sans-serif;
-      }
-      #game {
-        margin: 0 auto;
-        display: block;
-        width: 800px;
-        height: 450px;
-      }
-    </style>
+    <title>🎮 Mini Mario Bros - Jhon</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h2>🎮 Mini Mario Bros - Jhon</h2>
     <div id="game"></div>
 
-    <!-- Cargar Phaser local -->
-    <script src="phaser.min.js"></script>
-    <!-- Cargar el juego -->
-    <script src="game.js"></script>
+    <!-- Load Phaser from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js" onerror="alert('Error: No se pudo cargar Phaser. Verifica tu conexión o el archivo phaser.min.js.')"></script>
+    <!-- Load game script -->
+    <script src="game.js" onerror="alert('Error: No se pudo cargar game.js. Verifica que el archivo exista.')"></script>
   </body>
 </html>
