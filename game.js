@@ -5,9 +5,10 @@ const config = {
     parent: 'game',
     physics: {
         default: 'arcade',
-        arcade: { gravity: { y: 800 }, debug: false }
+        arcade: { gravity: { y: 800 }, debug: true } // Enable debug for visibility
     },
-    scene: { preload, create, update }
+    scene: { preload, create, update },
+    backgroundColor: '#000000' // Fallback background color
 };
 
 const PLAYER_SPEED = 160;
@@ -28,68 +29,68 @@ let coinParticles;
 const game = new Phaser.Game(config);
 
 function preload() {
-    // Generating textures for assets
-    const g = this.add.graphics();
-    
-    // Sky background
-    g.fillStyle(0x6ec6ff, 1);
-    g.fillRect(0, 0, 800, 450);
-    g.generateTexture('sky', 800, 450);
-    
-    // Ground decoration
-    g.fillStyle(0x228b22, 1);
-    g.fillRect(0, 0, 800, 50);
-    g.generateTexture('ground-deco', 800, 50);
-    
-    // Platform
-    g.fillStyle(0x8b5a2b, 1);
-    g.fillRect(0, 0, PLATFORM_WIDTH, 32);
-    g.generateTexture('ground', PLATFORM_WIDTH, 32);
-    
-    // Player (with basic animation frames: idle, run, jump)
-    g.fillStyle(0xff0000, 1);
-    g.fillRect(0, 0, 28, 36);
-    g.fillStyle(0xffffff, 1);
-    g.fillRect(6, 8, 4, 4);
-    g.fillRect(18, 8, 4, 4);
-    g.generateTexture('player_idle', 28, 36);
-    
-    g.clear();
-    g.fillStyle(0xff0000, 1);
-    g.fillRect(0, 0, 28, 36);
-    g.fillStyle(0xffffff, 1);
-    g.fillRect(8, 8, 4, 4);
-    g.fillRect(20, 8, 4, 4);
-    g.generateTexture('player_run', 28, 36);
-    
-    // Coin
-    g.clear();
-    g.fillStyle(0xffff00, 1);
-    g.fillCircle(8, 8, 8);
-    g.generateTexture('coin', 16, 16);
-    
-    // Enemy
-    g.clear();
-    g.fillStyle(0x00ff00, 1);
-    g.fillRect(0, 0, 28, 28);
-    g.generateTexture('enemy', 28, 28);
-    
-    // Goal (flag)
-    g.clear();
-    g.fillStyle(0xff00ff, 1);
-    g.fillRect(0, 0, 32, 64);
-    g.generateTexture('goal', 32, 64);
-    
-    g.destroy();
+    console.log('Preloading assets...');
+    try {
+        const g = this.add.graphics();
 
-    // Load audio with fallback
-    this.load.audio('jump', ['jump.wav', 'jump.mp3']);
-    this.load.audio('coin', ['coin.wav', 'coin.mp3']);
-    this.load.audio('hit', ['hit.wav', 'hit.mp3']);
+        // Sky background
+        g.fillStyle(0x6ec6ff, 1);
+        g.fillRect(0, 0, 800, 450);
+        g.generateTexture('sky', 800, 450);
+        
+        // Ground decoration
+        g.fillStyle(0x228b22, 1);
+        g.fillRect(0, 0, 800, 50);
+        g.generateTexture('ground-deco', 800, 50);
+        
+        // Platform
+        g.fillStyle(0x8b5a2b, 1);
+        g.fillRect(0, 0, PLATFORM_WIDTH, 32);
+        g.generateTexture('ground', PLATFORM_WIDTH, 32);
+        
+        // Player
+        g.clear();
+        g.fillStyle(0xff0000, 1);
+        g.fillRect(0, 0, 28, 36);
+        g.fillStyle(0xffffff, 1);
+        g.fillRect(6, 8, 4, 4);
+        g.fillRect(18, 8, 4, 4);
+        g.generateTexture('player', 28, 36);
+        
+        // Coin
+        g.clear();
+        g.fillStyle(0xffff00, 1);
+        g.fillCircle(8, 8, 8);
+        g.generateTexture('coin', 16, 16);
+        
+        // Enemy
+        g.clear();
+        g.fillStyle(0x00ff00, 1);
+        g.fillRect(0, 0, 28, 28);
+        g.generateTexture('enemy', 28, 28);
+        
+        // Goal
+        g.clear();
+        g.fillStyle(0xff00ff, 1);
+        g.fillRect(0, 0, 32, 64);
+        g.generateTexture('goal', 32, 64);
+        
+        g.destroy(); // Clean up graphics object
+        console.log('Textures generated successfully');
+    } catch (e) {
+        console.error('Error generating textures:', e);
+    }
+
+    // Skip audio loading for now to avoid issues
+    // this.load.audio('jump', ['jump.wav', 'jump.mp3']);
+    // this.load.audio('coin', ['coin.wav', 'coin.mp3']);
+    // this.load.audio('hit', ['hit.wav', 'hit.mp3']);
 }
 
 function create() {
-    // Infinite scrolling backgrounds
+    console.log('Creating scene...');
+    
+    // Backgrounds
     bgSky1 = this.add.image(0, 0, 'sky').setOrigin(0).setDepth(0);
     bgSky2 = this.add.image(800, 0, 'sky').setOrigin(0).setDepth(0);
     bgGround1 = this.add.image(0, 400, 'ground-deco').setOrigin(0).setDepth(1);
@@ -103,28 +104,10 @@ function create() {
         ground.refreshBody();
     }
 
-    // Player with animations
-    player = this.physics.add.sprite(100, 350, 'player_idle').setDepth(10);
+    // Player
+    player = this.physics.add.sprite(100, 350, 'player').setDepth(10);
     player.setCollideWorldBounds(false);
     player.setBounce(0.1);
-
-    // Create player animations
-    this.anims.create({
-        key: 'idle',
-        frames: [{ key: 'player_idle' }],
-        frameRate: 10
-    });
-    this.anims.create({
-        key: 'run',
-        frames: [{ key: 'player_run' }],
-        frameRate: 10
-    });
-    this.anims.create({
-        key: 'jump',
-        frames: [{ key: 'player_run' }],
-        frameRate: 10
-    });
-
     this.physics.add.collider(player, platforms);
 
     // Input
@@ -154,12 +137,12 @@ function create() {
     scoreText = this.add.text(16, 16, 'Puntos: 0', { fontSize: '20px', fill: '#fff' }).setScrollFactor(0);
     this.add.text(650, 16, 'Récord: ' + highScore, { fontSize: '20px', fill: '#fff' }).setScrollFactor(0);
 
-    // Sounds
-    jumpSound = this.sound.add('jump', { volume: 0.5 });
-    coinSound = this.sound.add('coin', { volume: 0.5 });
-    hitSound = this.sound.add('hit', { volume: 0.5 });
+    // Skip audio for now
+    // jumpSound = this.sound.add('jump', { volume: 0.5 });
+    // coinSound = this.sound.add('coin', { volume: 0.5 });
+    // hitSound = this.sound.add('hit', { volume: 0.5 });
 
-    // Particle effects for coins
+    // Particles
     coinParticles = this.add.particles('coin');
     coinParticles.createEmitter({
         speed: { min: -100, max: 100 },
@@ -168,10 +151,15 @@ function create() {
         quantity: MAX_PARTICLES,
         on: false
     });
+
+    console.log('Scene created successfully');
 }
 
 function update() {
-    if (!player?.body) return;
+    if (!player?.body) {
+        console.warn('Player body not found');
+        return;
+    }
 
     // Player movement
     player.setVelocityX(PLAYER_SPEED);
@@ -179,28 +167,19 @@ function update() {
     // Jump
     if (cursors.up.isDown && player.body.blocked.down) {
         player.setVelocityY(JUMP_VELOCITY);
-        jumpSound.play();
-    }
-
-    // Player animations
-    if (!player.body.blocked.down) {
-        player.anims.play('jump', true);
-    } else if (player.body.velocity.x !== 0) {
-        player.anims.play('run', true);
-    } else {
-        player.anims.play('idle', true);
+        // jumpSound?.play();
     }
 
     // Scroll backgrounds
     scrollBackground(bgSky1, bgSky2, 0.5);
     scrollBackground(bgGround1, bgGround2, 1);
 
-    // Recycle game objects
+    // Recycle objects
     recyclePlatforms();
     recycleCoins();
     moveEnemies();
 
-    // Game over condition
+    // Game over
     if (player.y > 480) {
         showGameOver.call(this);
     }
@@ -237,7 +216,6 @@ function spawnCoins(scene) {
         const x = i * PLATFORM_WIDTH + Phaser.Math.Between(50, 150);
         const y = Phaser.Math.Between(300, 380);
         const coin = coins.create(x, y, 'coin').setOrigin(0.5).setBounce(0).setImmovable(true);
-        // Add coin animation
         scene.tweens.add({
             targets: coin,
             scale: 1.2,
@@ -253,7 +231,7 @@ function collectCoin(player, coin) {
     coin.disableBody(true, true);
     score += 10;
     scoreText.setText('Puntos: ' + score);
-    coinSound.play();
+    // coinSound?.play();
     coinParticles.emitParticleAt(coin.x, coin.y);
 }
 
@@ -280,7 +258,7 @@ function moveEnemies() {
 }
 
 function hitEnemy(player, enemy) {
-    hitSound.play();
+    // hitSound?.play();
     showGameOver.call(this);
 }
 
