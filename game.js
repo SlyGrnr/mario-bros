@@ -1,4 +1,4 @@
-// Configuración básica de Phaser
+// game.js - Versión sin recursos externos (texturas generadas en runtime)
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -7,7 +7,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: { y: 600 },
+      gravity: { y: 700 },
       debug: false
     }
   },
@@ -19,74 +19,102 @@ const game = new Phaser.Game(config);
 let player;
 let cursors;
 let platforms;
+let score = 0;
+let scoreText;
 
 function preload() {
-  // Fondo y suelo estables (GitHub raw links)
-  this.load.image('sky', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/skies/sky4.png');
-  this.load.image('ground', 'https://raw.githubusercontent.com/photonstorm/phaser3-examples/master/public/assets/platforms/platform.png');
-
-  // Sprite tipo Mario (public domain)
-  this.load.spritesheet('mario', 'https://raw.githubusercontent.com/jlooper/platformer-game-assets/main/player.png', {
-    frameWidth: 32,
-    frameHeight: 32
-  });
+  // Nada que cargar desde la red — generamos texturas en create()
 }
 
 function create() {
-  // Fondo
-  this.add.image(400, 225, 'sky').setScale(1.5);
+  // --- Fondo simple ---
+  this.cameras.main.setBackgroundColor('#87CEEB'); // azul cielo
 
-  // Plataformas
+  // --- Generar texturas con Graphics (no dependen de la web) ---
+  // Ground texture
+  const g = this.add.graphics();
+  g.fillStyle(0x8b5a2b, 1); // color marrón para suelo
+  g.fillRect(0, 0, 200, 32);
+  g.generateTexture('ground', 200, 32);
+  g.clear();
+
+  // Platform (otra tonalidad)
+  g.fillStyle(0x9b6b3a, 1);
+  g.fillRect(0, 0, 140, 20);
+  g.generateTexture('platform', 140, 20);
+  g.clear();
+
+  // Player texture (un bloque con "cara")
+  g.fillStyle(0xff0000, 1); // rojo cuerpo
+  g.fillRect(0, 0, 28, 36);
+  g.fillStyle(0xffffff, 1); // ojos
+  g.fillRect(6, 8, 4, 4);
+  g.fillRect(18, 8, 4, 4);
+  g.generateTexture('player', 28, 36);
+  g.clear();
+
+  // --- Plataformas físicas ---
   platforms = this.physics.add.staticGroup();
-  platforms.create(400, 440, 'ground').setScale(2).refreshBody();
-  platforms.create(600, 300, 'ground');
-  platforms.create(50, 250, 'ground');
-  platforms.create(750, 180, 'ground');
 
-  // Jugador
-  player = this.physics.add.sprite(100, 350, 'mario');
+  // Suelo ancho (centrado abajo)
+  const suelo = platforms.create(400, 440, 'ground');
+  suelo.setScale(4, 1).refreshBody(); // 200*4 = 800 ancho total
+
+  // Plataformas flotantes
+  platforms.create(600, 320, 'platform');
+  platforms.create(50, 260, 'platform');
+  platforms.create(750, 180, 'platform');
+  platforms.create(350, 220, 'platform');
+
+  // --- Jugador ---
+  player = this.physics.add.sprite(100, 350, 'player');
   player.setBounce(0.1);
   player.setCollideWorldBounds(true);
+  player.body.setSize(28, 36, false); // tamaño hitbox ajustado
 
-  // Animaciones
-  this.anims.create({
-    key: 'left',
-    frames: this.anims.generateFrameNumbers('mario', { start: 0, end: 3 }),
-    frameRate: 10,
-    repeat: -1
-  });
+  // Ajustes de control y físicas finas
+  player.setDragX(600); // frena suavemente al soltar
+  player.setMaxVelocity(300, 800);
 
-  this.anims.create({
-    key: 'turn',
-    frames: [{ key: 'mario', frame: 4 }],
-    frameRate: 20
-  });
+  // Animaciones: como tenemos una sola textura, simulamos "frames" moviendo el sprite
+  // (a futuro puedes reemplazar por spritesheet)
+  // Por ahora no son necesarias las animaciones complejas.
 
-  this.anims.create({
-    key: 'right',
-    frames: this.anims.generateFrameNumbers('mario', { start: 5, end: 8 }),
-    frameRate: 10,
-    repeat: -1
-  });
-
-  // Colisiones
+  // Colisiones entre jugador y plataformas
   this.physics.add.collider(player, platforms);
 
-  // Controles
+  // --- Controles ---
   cursors = this.input.keyboard.createCursorKeys();
+
+  // --- UI: puntaje (ejemplo) ---
+  scoreText = this.add.text(16, 16, 'Puntos: 0', { fontSize: '20px', fill: '#000' }).setDepth(5);
 }
 
 function update() {
+  // Movimiento horizontal
   if (cursors.left.isDown) {
-    player.setVelocityX(-160);
-    player.anims.play('left', true);
+    player.setAccelerationX(-1200);
+    player.flipX = true;
   } else if (cursors.right.isDown) {
-    player.setVelocityX(160);
-    player.anims.play('right', true);
+    player.setAccelerationX(1200);
+    player.flipX = false;
   } else {
-    player.setVelocityX(0);
-    player.anims.play('turn');
+    player.setAccelerationX(0);
   }
+
+  // Salto — solo si está apoyado
+  const canJump = player.body.blocked.down || player.body.touching.down;
+  if (cursors.up.isDown && canJump) {
+    player.setVelocityY(-430);
+  }
+
+  // Ejemplo: sumar puntos si se mantiene en el aire (solo demo)
+  // (esto es opcional y se puede remover)
+  if (!canJump) {
+    score += 0; // deja en 0 por ahora
+  }
+  scoreText.setText('Puntos: ' + score);
+}
 
   if (cursors.up.isDown && player.body.touching.down) {
     player.setVelocityY(-400);
