@@ -1,4 +1,4 @@
-// game.js - Versión sin recursos externos (texturas generadas en runtime)
+// === FASE 1: Movimiento automático y fondo animado ===
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -16,102 +16,89 @@ const config = {
 
 const game = new Phaser.Game(config);
 
-let player;
-let cursors;
-let platforms;
-let score = 0;
-let scoreText;
+let player, cursors, platforms, camera, score = 0, scoreText, bg1, bg2;
+let scrollSpeed = 2; // velocidad del scroll del escenario
 
 function preload() {
-  // Nada que cargar desde la red — generamos texturas en create()
+  // Nada externo: generamos todo en código
 }
 
 function create() {
-  // --- Fondo simple ---
-  this.cameras.main.setBackgroundColor('#87CEEB'); // azul cielo
+  // Fondo (dos capas para simular scroll infinito)
+  bg1 = this.add.rectangle(0, 0, 800, 450, 0x6ec6ff).setOrigin(0); // cielo
+  bg2 = this.add.rectangle(0, 400, 800, 50, 0x228b22).setOrigin(0); // piso verde decorativo
 
-  // --- Generar texturas con Graphics (no dependen de la web) ---
-  // Ground texture
+  // Plataformas
   const g = this.add.graphics();
-  g.fillStyle(0x8b5a2b, 1); // color marrón para suelo
+  g.fillStyle(0x8b5a2b, 1);
   g.fillRect(0, 0, 200, 32);
   g.generateTexture('ground', 200, 32);
   g.clear();
 
-  // Platform (otra tonalidad)
   g.fillStyle(0x9b6b3a, 1);
   g.fillRect(0, 0, 140, 20);
   g.generateTexture('platform', 140, 20);
   g.clear();
 
-  // Player texture (un bloque con "cara")
-  g.fillStyle(0xff0000, 1); // rojo cuerpo
+  g.fillStyle(0xff0000, 1);
   g.fillRect(0, 0, 28, 36);
-  g.fillStyle(0xffffff, 1); // ojos
+  g.fillStyle(0xffffff, 1);
   g.fillRect(6, 8, 4, 4);
   g.fillRect(18, 8, 4, 4);
   g.generateTexture('player', 28, 36);
   g.clear();
 
-  // --- Plataformas físicas ---
   platforms = this.physics.add.staticGroup();
+  for (let i = 0; i < 20; i++) {
+    const x = i * 200;
+    const y = 440;
+    const ground = platforms.create(x, y, 'ground');
+    ground.setOrigin(0);
+  }
 
-  // Suelo ancho (centrado abajo)
-  const suelo = platforms.create(400, 440, 'ground');
-  suelo.setScale(4, 1).refreshBody(); // 200*4 = 800 ancho total
-
-  // Plataformas flotantes
-  platforms.create(600, 320, 'platform');
-  platforms.create(50, 260, 'platform');
-  platforms.create(750, 180, 'platform');
-  platforms.create(350, 220, 'platform');
-
-  // --- Jugador ---
   player = this.physics.add.sprite(100, 350, 'player');
   player.setBounce(0.1);
-  player.setCollideWorldBounds(true);
-  player.body.setSize(28, 36, false); // tamaño hitbox ajustado
+  player.setCollideWorldBounds(false); // no colisiona con bordes
+  player.setDepth(10);
 
-  // Ajustes de control y físicas finas
-  player.setDragX(600); // frena suavemente al soltar
-  player.setMaxVelocity(300, 800);
-
-  // Animaciones: como tenemos una sola textura, simulamos "frames" moviendo el sprite
-  // (a futuro puedes reemplazar por spritesheet)
-  // Por ahora no son necesarias las animaciones complejas.
-
-  // Colisiones entre jugador y plataformas
   this.physics.add.collider(player, platforms);
 
-  // --- Controles ---
   cursors = this.input.keyboard.createCursorKeys();
+  scoreText = this.add.text(16, 16, 'Puntos: 0', { fontSize: '20px', fill: '#000' });
 
-  // --- UI: puntaje (ejemplo) ---
-  scoreText = this.add.text(16, 16, 'Puntos: 0', { fontSize: '20px', fill: '#000' }).setDepth(5);
+  // Cámara para seguir al jugador
+  camera = this.cameras.main;
+  camera.startFollow(player, true, 0.05, 0.05);
+  camera.setBounds(0, 0, 999999, 450);
 }
 
 function update() {
-  // Movimiento horizontal
-  if (cursors.left.isDown) {
-    player.setAccelerationX(-1200);
-    player.flipX = true;
-  } else if (cursors.right.isDown) {
-    player.setAccelerationX(1200);
-    player.flipX = false;
-  } else {
-    player.setAccelerationX(0);
-  }
+  // Mover el jugador automáticamente hacia adelante
+  player.setVelocityX(160);
 
-  // Salto — solo si está apoyado
-  const canJump = player.body.blocked.down || player.body.touching.down;
+  // Control manual solo para saltar
+  const canJump = player.body.blocked.down;
   if (cursors.up.isDown && canJump) {
-    player.setVelocityY(-430);
+    player.setVelocityY(-450);
   }
 
-  // Ejemplo: sumar puntos si se mantiene en el aire (solo demo)
-  // (esto es opcional y se puede remover)
-  if (!canJump) {
-    score += 0; // deja en 0 por ahora
+  // Scroll infinito del fondo y plataformas
+  bg1.x -= scrollSpeed * 0.5;
+  bg2.x -= scrollSpeed;
+
+  if (bg1.x <= -800) bg1.x = 0;
+  if (bg2.x <= -800) bg2.x = 0;
+
+  platforms.children.iterate((p) => {
+    p.x -= scrollSpeed;
+    if (p.x + p.width < camera.scrollX - 100) {
+      // reciclar plataforma delante
+      p.x += 4000;
+    }
+  });
+
+  // Verificar si el jugador cayó (muere)
+  if (player.y > 500) {
+    this.scene.restart(); // reinicia juego
   }
-  scoreText.setText('Puntos: ' + score);
 }
