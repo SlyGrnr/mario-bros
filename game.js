@@ -105,12 +105,15 @@ function create() {
     spawnEnemies(this);
     this.physics.add.collider(player, enemies, hitEnemy, null, this);
     this.physics.add.collider(enemies, platforms);
+    console.log('Enemigos creados');
 
     goal = this.physics.add.sprite(20 * PLATFORM_WIDTH, 350, 'goal').setImmovable(true);
     this.physics.add.overlap(player, goal, reachGoal, null, this);
+    console.log('Meta creada en x: ', 20 * PLATFORM_WIDTH);
 
     scoreText = this.add.text(16, 16, 'Puntos: 0', { fontSize: '20px', fill: '#fff' }).setScrollFactor(0);
     this.add.text(650, 16, 'Récord: ' + highScore, { fontSize: '20px', fill: '#fff' }).setScrollFactor(0);
+    console.log('UI de puntaje creada');
 
     // Partículas actualizadas para Phaser 3.60+
     coinEmitter = this.add.particles(0, 0, 'coin', {
