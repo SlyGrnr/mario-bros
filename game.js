@@ -5,7 +5,7 @@ const config = {
     parent: 'game',
     physics: {
         default: 'arcade',
-        arcade: { gravity: { y: 800 }, debug: false } // Cambia a true para depurar
+        arcade: { gravity: { y: 800 }, debug: true } // Debug activado para verificar renderizado
     },
     scene: { preload, create, update },
     backgroundColor: '#000000'
@@ -14,7 +14,6 @@ const config = {
 const PLAYER_SPEED = 160;
 const JUMP_VELOCITY = -450;
 const PLATFORM_WIDTH = 200;
-const SCROLL_SPEED = 2;
 const MAX_PARTICLES = 5;
 
 let player, cursors, platforms, camera;
@@ -195,15 +194,11 @@ function spawnEnemies(scene) {
 }
 
 function moveEnemies() {
-    enemies.children.iterate(e => {
-        if (!e?.body) return;
-        if (e.body.blocked.right || e.body.blocked.left) {
-            e.setVelocityX(-e.body.velocity.x);
-        }
-        if (e.x < camera.scrollX - 50) {
-            e.x += PLATFORM_WIDTH * 20;
-            e.y = 402;
-            e.setVelocityX(Phaser.Math.Between(50, 100) * (Math.random() > 0.5 ? 1 : -1));
+    platforms.children.iterate(p => {
+        if (!p?.body) return;
+        if (p.x + PLATFORM_WIDTH < camera.scrollX - 200) {
+            p.x += PLATFORM_WIDTH * 20;
+            p.refreshBody();
         }
     });
 }
